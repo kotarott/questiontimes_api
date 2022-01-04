@@ -1,8 +1,10 @@
 from inspect import GEN_RUNNING
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from questions.api.permissions import IsAuthorOrReadOnly
 from questions.api.serializers import AnswerSerializer, QuestionSerializer
@@ -47,3 +49,28 @@ class AnswerListAPIView(generics.ListAPIView):
     def get_queryset(self):
         kwarg_slug = self.kwargs.get("slug")
         return Answer.objects.filter(question__slug=kwarg_slug).order_by('-created_at')
+
+
+class AnswerLikeAPIView(APIView):
+    serializer_class = AnswerSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, uuid):
+        answer = get_object_or_404(Answer, uuid=uuid)
+        answer.voters.add(request.user)
+        answer.save()
+
+        serializer_context = {"request": request}
+        serializer = self.serializer_class(answer, context=serializer_context)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request, uuid):
+        answer = get_object_or_404(Answer, uuid=uuid)
+        answer.voters.remove(request.user)
+        answer.save()
+
+        serializer_context = {"request": request}
+        serializer = self.serializer_class(answer, context=serializer_context)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
