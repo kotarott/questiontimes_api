@@ -14,10 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 
 from django_registration.backends.one_step.views import RegistrationView
 
+from core.views import IndexTemplateView
 from users.forms import CustomUserForm
 
 urlpatterns = [
@@ -34,4 +35,5 @@ urlpatterns = [
     path('auth/', include('djoser.urls.authtoken')),
 
     path('api/v1/', include('questions.api.urls')),
+    re_path(r'^.*$', IndexTemplateView.as_view(), name='spa-entry-point'),
 ]
