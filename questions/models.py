@@ -7,6 +7,7 @@ from core.models import TimeStampModel
 
 # Create your models here.
 class Question(TimeStampModel):
+    uuid = models.UUIDField(db_index=True, default=uuid_lib.uuid4, editable=False)
     content = models.CharField(max_length=240)
     slug = models.SlugField(max_length=255, unique=True)
     author = models.ForeignKey(
